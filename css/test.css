@@ -1,0 +1,127 @@
+body {
+    font-family: "DotGothic16", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    background-color: antiquewhite;
+}
+
+html {
+    font-size: 100%;
+    /* 16pxらしい */
+}
+
+a {
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+}
+
+#secret{
+    width:20px;
+    height:auto;
+    position:fixed;
+    top:40px;
+    left:20px;
+    cursor: help;
+}
+
+p{position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+#bgm_btn{
+    cursor: pointer;
+}
+
+button{
+    cursor: pointer;
+    font-family : inherit;
+}
+
+#header{
+    display: flex;
+    justify-content: center;
+    margin:20px auto;
+    font-size: 2rem;
+}
+
+li{
+    list-style: none;
+    width: 400px;
+    height:auto;
+    display: flex;
+    justify-content: space-around;
+    margin: auto;
+}
+
+#normal:hover,#hard:hover,#very_hard:hover{
+    border-bottom: 2px solid yellow;
+    cursor: pointer;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    margin:20px auto;
+}
+
+.slot{
+    width: 200px;
+    height:auto;
+    text-align: center;
+}
+
+#result{
+    display: flex;
+    justify-content: center;
+    margin:20px;
+}
+
+#reset{
+    display: flex;
+    justify-content: center;
+    margin:auto;
+}
+
+/* #dancing{
+    display: flex;
+    justify-content: center;
+    margin:20px auto;
+} */
+
+#slot1,#slot2,#slot3{
+    position:relative;
+}
+
+
+.overlay{
+    display: flex;
+    position: absolute;
+    width: 75%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* レスポンシブ用 */
+@media screen and(max-width:600px){
+    li{
+        flex-direction: column;
+        width:auto
+    }
+    .container{
+        flex-direction: column;
+    }
+}

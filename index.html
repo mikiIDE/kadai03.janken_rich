@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <title>ちいかわスロット</title>
+</head>
+
+<body>
+    <header>
+        <h1 id="header">ちいかわスロット</h1>
+        <a href="secret.html"><img id="secret" src="img/tulip.png" alt="チューリップのイラスト"></a>
+        <p id="bgm_btn">♪ON</p>
+        <audio id="bgm" src="Kira_Kira_Cotton_Candy_2.mp3" loop></audio>
+        <!-- 楽曲提供元はhttps://dova-s.jp/bgm/play21338.html -->
+    </header>
+    <li class="mode">
+        <!-- 親要素 -->
+        <!-- 以下が子要素 -->
+        <ul id="normal">ノーマル</ul>
+        <ul id="hard">ハード</ul> <!-- スロットの速度をあげる -->
+        <ul id="very_hard">むちゃハード</ul> <!-- スロットを速くしたうえで、z1に目隠し画像を加えて見えなくする -->
+        <!-- 子要素ここまで -->
+    </li>
+    <div class="container"> <!-- 親要素 -->
+        <!-- 以下が子要素 -->
+        <div class="slot">
+            <div id="slot1"><img src="img/chiikawa1.jpeg" alt="ちいかわの顔"></div><!-- デフォルトの顔 -->
+            <!-- <div class="overlay"><img src="img/closed.png" alt="目隠しシャッター"> -->
+            <button id="stop1">ストップ</button>
+        </div>
+        <div class="slot">
+            <div id="slot2"><img src="img/hachiware1.jpeg" alt="ハチワレの顔"></div><!-- デフォルトの顔 -->
+            <!-- <div class="overlay"><img src="img/closed.png" alt="目隠しシャッター"> -->
+            <button id="stop2">ストップ</button>
+        </div>
+        <div class="slot">
+            <div id="slot3"><img src="img/usagi1.jpeg" alt="ウサギの顔"></div><!-- デフォルトの顔 -->
+            <!-- <div class="overlay"><img src="img/closed.png" alt="目隠しシャッター"> -->
+            <button id="stop3">ストップ</button>
+        </div>
+        <!-- 子要素ここまで -->
+    </div>
+    <div id="result"></div>
+    <!-- または新しい画面に遷移させる、でもいい -->
+    <!-- その場合は2秒後にreset後の画面に遷移したい -->
+    <button id="reset">リセット</button>
+    <div id="dancing"></div>
+    <!-- レスポンシブ対応のため、3体躍らせる状態から1体に減らすように -->
+    <!-- ↑dancingは時間があれば追加！あとまわし！！ -->
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+        const bgmButton = document.getElementById('bgm_btn');
+        const bgm = document.getElementById('bgm');
+        let isPlaying = false;
+        bgm.volume = 0.1;
+
+        bgmButton.addEventListener('click', function () {
+            if (isPlaying) {
+                bgm.pause();
+                bgmButton.textContent = '♪ ON';
+            } else {
+                bgm.play();
+                bgmButton.textContent = '♪ OFF';
+            }
+            isPlaying = !isPlaying;
+        });
+
+
+        //documen = HTMLのことなので、HTMLを全部読みこんだ後実行するように指示してる
+        $(document).ready(function () {
+            const images = [
+                //ちいかわの画像
+                'img/chiikawa1.jpeg',
+                'img/chiikawa4.jpeg',
+                'img/chiikawa5.jpeg',
+                //ハチワレの画像
+                'img/hachiware1.jpeg',
+                'img/hachiware4.jpeg',
+                'img/hachiware5.jpeg',
+                //ウサギの画像
+                'img/usagi1.jpeg',
+                'img/usagi4.jpeg',
+                'img/usagi5.jpeg'
+            ];
+
+            let intervals = [null, null, null]; //回転
+            let results = [null, null, null]; //結果
+            let currentSpeed = 600;
+            let gameMode = '';
+
+            // 画像のプリロード(あったほうがスムーズに動くとAIからアドバイス)
+            function preloadImages() {
+                images.forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                });
+            }
+
+            preloadImages();
+
+            // モード選択処理
+            $('#normal, #hard, #very_hard').click(function () {
+                gameMode = $(this).attr('id');
+                startGame(gameMode);
+            });
+
+            function startGame(mode) {
+                clearAllIntervals();
+                results = [null, null, null];
+                $('#result').text('');
+                $('.slot').css('background-color', '');
+                $('[id^=stop]').prop('disabled', false);
+                // $('.overlay').hide();
+                // overlayで閉店シャッターの画像を500ミリ秒でfadeInさせて、クリックで即fadeOutさせるのがいいかも？
+                // 今こいつ機能してない
+
+                // モードに応じた設定
+                switch (mode) {
+                    case 'normal':
+                        currentSpeed = 600;
+                        break;
+                    case 'hard':
+                        currentSpeed = 400;
+                        break;
+                    case 'very_hard':
+                        currentSpeed = 300;
+                        // $('.overlay').fadeIn(500);
+                        break;
+                }
+
+                // スロット開始
+                for (let i = 0; i < 3; i++) {
+                    intervals[i] = spinSlot(i);
+                }
+            }
+
+            // spinSlotと名付けた関数は、slotNumという引数をとり
+            //setIntervalを返す。
+            function spinSlot(slotNum) {
+                return setInterval(function () {
+                    const randomImage = images[Math.floor(Math.random() * images.length)];
+                    $(`#slot${slotNum + 1} img`).attr('src', randomImage);
+                }, currentSpeed);
+            }
+
+            // ストップボタンの処理
+            $('[id^=stop]').click(function () {
+                const slotNum = parseInt($(this).attr('id').slice(-1)) - 1;
+
+                if (intervals[slotNum]) {
+                    clearInterval(intervals[slotNum]);
+                    intervals[slotNum] = null;
+                    results[slotNum] = $(`#slot${slotNum + 1} img`).attr('src');
+                    $(this).prop('disabled', true);
+
+                    if (!intervals.some(interval => interval !== null)) {
+                        checkResult();
+                    }
+                }
+            });
+
+
+            function checkResult() {
+                const firstImage = results[0];
+                const isAllSame = results.every(result => result === firstImage);
+
+                if (isAllSame) {
+                    $('#result').text('合格！おめでとう！').css('color', '#ff4081').css('font-weight', 'bold');
+                } else {
+                    const similarCount = results.filter(result => result === firstImage).length;
+
+                    if (similarCount === 2 || (results[1] === results[2] && results[1] !== firstImage)) {
+                        $('#result').text('惜しい！').css('color', '#2196f3').css('font-weight', 'bold');
+                    } else {
+                        $('#result').text('不合格...').css('color', '#757575').css('font-weight', 'bold');
+                    }
+                }
+            }
+
+            // function showDancingCharacters() {
+            //     const danceImages = `
+            //         <img src="img/dance_chiikawa.gif" alt="踊るちいかわ">
+            //         <img src="img/dance_hachiware.gif" alt="踊るハチワレ">
+            //         <img src="img/dance_usagi.gif" alt="踊るウサギ">
+            //     `;
+            //     $('#dancing').html(danceImages);
+            // }
+
+            function clearAllIntervals() {
+                intervals.forEach((interval, index) => {
+                    if (interval) {
+                        clearInterval(interval);
+                        intervals[index] = null;
+                    }
+                });
+            }
+
+            // リセットボタンの処理
+            $('#reset').click(function () {
+                $('.mode ul').prop('disabled', false);
+                $('[id^=stop]').prop('disabled', true);
+                $('#result').text('');
+                $('.slot').css('background-color', '');
+                clearAllIntervals();
+
+                // 初期画像に戻す
+                $('#slot1 img').attr('src', 'img/chiikawa1.jpeg');
+                $('#slot2 img').attr('src', 'img/hachiware1.jpeg');
+                $('#slot3 img').attr('src', 'img/usagi1.jpeg');
+            });
+        });
+
+        //画像の切り替わりを繰り返すsetIntervalというものを使う
+        //引数を2つ取り、setInterval(a,b)の場合は
+        //a → 実行するプログラムそのもの
+        //b → 実行する時間（ミリ秒）（例：1000　＝　1秒）
+
+
+    </script>
+
+</body>
+
+</html>
